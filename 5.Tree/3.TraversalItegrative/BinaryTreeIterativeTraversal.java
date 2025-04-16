@@ -414,6 +414,7 @@ class BinaryTreeIterativeTraversal {
         return (root1.data == root2.data) && (isSymmetricTree(root1.left, root2.right)) && (isSymmetricTree(root1.right, root2.left));
     }
 
+    //23. get the path from root to given node
     boolean getPath(Node root, ArrayList<Integer> arr, int target){
         if(root == null) return false;
         arr.add(root.data);
@@ -430,15 +431,150 @@ class BinaryTreeIterativeTraversal {
         System.out.print(arr.toString());
     }
 
+    //24. LCA in Binary Tree
+    public  Node LCA(Node root, Node p, Node q){
+        if(root == null || root == p || root == q) return root;
+        Node left = LCA(root.left, p, q);
+        Node right = LCA(root.right, p, q);
+
+        if(left == null) return right;
+        if(right == null) return left;
+
+        return root;
+    }
+
+    //25. width of the binary tree
+    public int widthOfBinaryTree(Node root){
+        if(root == null) return 0;
+        Queue<Box> queue = new LinkedList<>();
+        queue.add(new Box(root, 1));
+        int start=0, end=0, size=0, maxWidth=0;
+        while(!queue.isEmpty()){
+            size = queue.size();
+            start = queue.peek().vertex;
+            for(int i=0; i<size; i++){
+                Box box = queue.poll();
+                Node curr = box.node;
+                end = box.vertex;
+                if(curr.left != null) queue.add(new Box(curr.left, 2*end));
+                if(curr.right != null) queue.add(new Box(curr.right, 2*end+1));
+                maxWidth = Math.max(maxWidth, end-start+1);
+            }
+        }
+        return maxWidth;
+    }
+
+    boolean isSumProperty(Node root){
+        if(root == null) return true;
+        if(root.left == null && root.right == null) return true;
+        int sum = 0;
+        if(root.left != null) sum += root.left.data;
+        if(root.right != null) sum += root.right.data;
+        if(root.data != sum) return false;
+        return (isSumProperty(root.left) && isSumProperty(root.right));
+    }
+    //26. find the node from the given node to specific dist.
+    void findNodeAtDistK(Node root, Node target, int k){
+        HashMap<Node, Node> parent_track = new HashMap<>();
+        markParent(root, parent_track, root);
+        HashMap<Node, Boolean> visited = new HashMap<>();
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(target);
+        visited.put(target,true);
+        int curr_label =0;
+        while(!queue.isEmpty())
+        {
+            int size = queue.size();
+            if(curr_label == k) break;
+            curr_label++;
+            for(int i=0; i<size; i++)
+            {
+                Node curr = queue.poll();
+                if(curr.left != null && visited.get(curr.left) == null)
+                {
+                    queue.offer(curr.left);
+                    visited.put(curr.left,true);
+                }
+                if(curr.right != null && visited.get(curr.right) == null)
+                {
+                    queue.offer(curr.right);
+                    visited.put(curr.right,true);
+                }
+                if(parent_track.get(curr) != null && visited.get(parent_track.get(curr)) == null)
+                {
+                    queue.offer(parent_track.get(curr));
+                    visited.put(parent_track.get(curr), true);
+                }
+            }
+        } 
+        List<Integer> result = new ArrayList<>();
+        while(!queue.isEmpty()){
+            Node curr = queue.poll();
+            result.add(curr.data);
+        }
+        System.out.print(result.toString());
+        // return result;
+    }
+
+    public void markParent(Node root, HashMap<Node, Node> parentTrack, Node target){
+        Queue<Node> queue = new LinkedList<>();
+        queue.offer(root);
+        while(!queue.isEmpty()){
+            Node curr = queue.poll();
+            if(curr.left != null){
+                parentTrack.put(curr.left, curr);
+                queue.add(curr.left);
+            }
+            if(curr.right != null){
+                parentTrack.put(curr.right, curr);
+                queue.add(curr.right);
+            }
+        }
+    }
+
+    void timeToBurnTree(Node root, Node target){
+        HashMap<Node, Node> parentTrack = new HashMap<>();
+        markParent(root, parentTrack, target);   // root needed for finding the parent node of all
+        HashMap<Node, Boolean> visited = new HashMap<>();
+        Queue<Node> queue = new LinkedList<>();
+        queue.offer(target);
+        visited.put(target, true);
+        int max =0;
+        while(!queue.isEmpty()){
+            int size = queue.size();
+            int fire = 0;
+            for(int i=0; i<size; i++){
+                Node curr = queue.poll();
+                if(curr.left != null && visited.get(curr.left) == null){
+                    fire = 1;
+                    queue.offer(curr.left);
+                    visited.put(curr.left, true);
+                }
+                if(curr.right != null && visited.get(curr.right) == null){
+                    fire = 1;
+                    queue.offer(curr.right);
+                    visited.put(curr.right, true);
+                }
+                if(parentTrack.get(curr) != null && visited.get(parentTrack.get(curr)) == null){
+                    fire = 1;
+                    queue.offer(parentTrack.get(curr));
+                    visited.put(parentTrack.get(curr), true);
+                }
+                if(fire == 1) max++;
+            }
+        }
+        System.out.print(max);
+    }
+
     public static void main(String[] args) {
         BinaryTreeIterativeTraversal bt = new BinaryTreeIterativeTraversal();
-        Node root = new Node(10);
-        root.left = new Node(20);
-        root.right = new Node(30);
-        root.left.left = new Node(40);
-        root.left.right = new Node(50);
-        root.right.left = new Node(60);
-        root.right.right = new Node(70);
+        Node root = new Node(45);
+        root.left = new Node(35);
+        root.right = new Node(10);
+        root.left.left = new Node(30);
+        root.left.right = new Node(5);
+        root.right.left = new Node(8);
+        root.right.right = new Node(2);
 
         System.out.print("1. Pre Order Traversal : ");
         bt.preOrder(root);
@@ -481,6 +617,13 @@ class BinaryTreeIterativeTraversal {
         System.out.print("\n20. IsSymmetric Binary Tree : "+bt.isSymmetricTree(root));
         System.out.print("\n21. Get path from Root(10) to Node(40) : ");
         bt.getRoot2NodePath(root, 40);
+        System.out.print("\n22. LCA of node (60,50) in Binary Tree : "+(bt.LCA(root, root.right.left, root.left.right) != null ? bt.LCA(root, root.right.left, root.left.right).data : bt.LCA(root, root.right.left, root.left.right)));
+        System.out.print("\n23. Max Width of Binary Tree : "+bt.widthOfBinaryTree(root));
+        System.out.print("\n24. isSumProperty of Binary Tree : "+bt.isSumProperty(root));
+        System.out.print("\n25. Node at Dist 1 of Binary Tree Node  "+root.left.data+" : ");
+        bt.findNodeAtDistK(root, root.left, 1);
+        System.out.print("\n26. Time takes to burn All Binary Tree Nodes from "+root.left.data+" : ");
+        bt.timeToBurnTree(root, root.left);
         System.out.println("");
     }    
 }
